@@ -38,7 +38,10 @@ module Sinatra
           else
             # Consider first Accept type as default, otherwise
             # fall back to settings.default_content
-            default_content = Rack::Mime::MIME_TYPES.invert[request.accept.first]
+            matching_mime_types = Rack::Mime::MIME_TYPES.select{|k,v| v == request.accept.first.to_s}
+            # relies on the order of the mime types in Rack::Mime::MIME_TYPES
+            default_content = matching_mime_types.first[0] if matching_mime_types.any?
+            # if default content has been found, strip off the leading dot
             default_content = default_content ? default_content[1..-1] : settings.default_content
 
             # Special case, as the specified default_content may use a different symbol than that
