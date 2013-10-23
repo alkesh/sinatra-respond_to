@@ -356,7 +356,7 @@ describe Sinatra::RespondTo do
       end
 
       it "should fail when set to an unknown extension type" do
-        lambda { format :bogus }.should raise_error
+        lambda { format :bogus }.should raise_error(Sinatra::RespondTo::UnhandledFormat)
       end
 
       it "should return the current mime type extension" do
@@ -426,7 +426,7 @@ describe Sinatra::RespondTo do
           respond_to do |wants|
             wants.bogus
           end
-        end.should raise_error
+        end.should raise_error(Sinatra::RespondTo::UnhandledFormat)
       end
 
       it "should call the block corresponding to the current format" do

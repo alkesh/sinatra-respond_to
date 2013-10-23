@@ -154,7 +154,7 @@ module Sinatra
       def render(*args, &block)
         assumed_layout = args[1] == :layout
         args[1] = "#{args[1]}.#{format}".to_sym if args[1].is_a?(::Symbol)
-        super *args, &block
+        super(*args, &block)
       rescue Errno::ENOENT
         raise MissingTemplate, "#{args[1]}.#{args[0]}" unless assumed_layout
         raise # Reraise original error
@@ -172,7 +172,7 @@ module Sinatra
       def format(val=nil)
         unless val.nil?
           mime_type = ::Sinatra::Base.mime_type(val)
-          fail "Unknown media type #{val}\nTry registering the extension with a mime type" if mime_type.nil?
+          raise UnhandledFormat, "Unknown media type #{val}\nTry registering the extension with a mime type" if mime_type.nil?
 
           @_format = val.to_sym
           response['Content-Type'] ? response['Content-Type'].sub!(/^[^;]+/, mime_type) : content_type(@_format)
@@ -205,7 +205,7 @@ module Sinatra
       def respond_to(&block)
         wants = {}
         def wants.method_missing(type, *args, &handler)
-          ::Sinatra::Base.send(:fail, "Unknown media type for respond_to: #{type}\nTry registering the extension with a mime type") if ::Sinatra::Base.mime_type(type).nil?
+          ::Sinatra::Base.send(:raise, UnhandledFormat, "Unknown media type for respond_to: #{type}\nTry registering the extension with a mime type") if ::Sinatra::Base.mime_type(type).nil?
           self[type] = handler
         end
 
@@ -220,7 +220,7 @@ module Sinatra
           end
           format alt if alt
         end
-        raise UnhandledFormat  if wants[format].nil?
+        raise UnhandledFormat if wants[format].nil?
         wants[format].call
       end
     end
